@@ -1,0 +1,507 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "accounts_image_create_resource_name": {
+            "defaultValue": "image-create-resource",
+            "type": "String"
+        },
+        "accounts_dannu_mdp6fe8r_swedencentral_name": {
+            "defaultValue": "dannu-mdp6fe8r-swedencentral",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2025-06-01",
+            "name": "[parameters('accounts_dannu_mdp6fe8r_swedencentral_name')]",
+            "location": "swedencentral",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "AIServices",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "apiProperties": {},
+                "customSubDomainName": "[parameters('accounts_dannu_mdp6fe8r_swedencentral_name')]",
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "allowProjectManagement": true,
+                "defaultProject": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '_project')]",
+                "associatedProjects": [
+                    "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '_project')]"
+                ],
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts",
+            "apiVersion": "2025-06-01",
+            "name": "[parameters('accounts_image_create_resource_name')]",
+            "location": "eastus2",
+            "sku": {
+                "name": "S0"
+            },
+            "kind": "AIServices",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "apiProperties": {},
+                "customSubDomainName": "[parameters('accounts_image_create_resource_name')]",
+                "networkAcls": {
+                    "defaultAction": "Allow",
+                    "virtualNetworkRules": [],
+                    "ipRules": []
+                },
+                "allowProjectManagement": true,
+                "defaultProject": "image-create",
+                "associatedProjects": [
+                    "image-create"
+                ],
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/defenderForAISettings",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/defenderForAISettings",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]"
+            ],
+            "properties": {
+                "state": "Disabled"
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/deployments",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '/dall-e-3')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "sku": {
+                "name": "Standard",
+                "capacity": 1
+            },
+            "properties": {
+                "model": {
+                    "format": "OpenAI",
+                    "name": "dall-e-3",
+                    "version": "3.0"
+                },
+                "versionUpgradeOption": "OnceNewDefaultVersionAvailable",
+                "currentCapacity": 1
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/projects",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '/', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '_project')]",
+            "location": "swedencentral",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "kind": "AIServices",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/projects",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/image-create')]",
+            "location": "eastus2",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]"
+            ],
+            "kind": "AIServices",
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {}
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/raiPolicies",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '/Microsoft.Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "properties": {
+                "mode": "Blocking",
+                "contentFilters": [
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/raiPolicies",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/Microsoft.Default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]"
+            ],
+            "properties": {
+                "mode": "Blocking",
+                "contentFilters": [
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/raiPolicies",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_dannu_mdp6fe8r_swedencentral_name'), '/Microsoft.DefaultV2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "properties": {
+                "mode": "Blocking",
+                "contentFilters": [
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Jailbreak",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Protected Material Text",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Protected Material Code",
+                        "blocking": false,
+                        "enabled": true,
+                        "source": "Completion"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/raiPolicies",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/Microsoft.DefaultV2')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]"
+            ],
+            "properties": {
+                "mode": "Blocking",
+                "contentFilters": [
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Hate",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Sexual",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Violence",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Selfharm",
+                        "severityThreshold": "Medium",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Jailbreak",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Prompt"
+                    },
+                    {
+                        "name": "Protected Material Text",
+                        "blocking": true,
+                        "enabled": true,
+                        "source": "Completion"
+                    },
+                    {
+                        "name": "Protected Material Code",
+                        "blocking": false,
+                        "enabled": true,
+                        "source": "Completion"
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/connections",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/dannu-mdp6fe8r-swedencentral')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "properties": {
+                "authType": "ApiKey",
+                "category": "AIServices",
+                "target": "https://dannu-mdp6fe8r-swedencentral.cognitiveservices.azure.com/",
+                "useWorkspaceManagedIdentity": true,
+                "isSharedToAll": false,
+                "sharedUserList": [],
+                "peRequirement": "NotRequired",
+                "peStatus": "NotApplicable",
+                "metadata": {
+                    "ApiType": "Azure",
+                    "ResourceId": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]",
+                    "Location": "swedencentral"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.CognitiveServices/accounts/projects/connections",
+            "apiVersion": "2025-06-01",
+            "name": "[concat(parameters('accounts_image_create_resource_name'), '/image-create/dannu-mdp6fe8r-swedencentral')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts/projects', parameters('accounts_image_create_resource_name'), 'image-create')]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_image_create_resource_name'))]",
+                "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]"
+            ],
+            "properties": {
+                "authType": "ApiKey",
+                "category": "AIServices",
+                "target": "https://dannu-mdp6fe8r-swedencentral.cognitiveservices.azure.com/",
+                "useWorkspaceManagedIdentity": true,
+                "isSharedToAll": false,
+                "sharedUserList": [],
+                "peRequirement": "NotRequired",
+                "peStatus": "NotApplicable",
+                "metadata": {
+                    "ApiType": "Azure",
+                    "ResourceId": "[resourceId('Microsoft.CognitiveServices/accounts', parameters('accounts_dannu_mdp6fe8r_swedencentral_name'))]",
+                    "Location": "swedencentral"
+                }
+            }
+        }
+    ]
+}
